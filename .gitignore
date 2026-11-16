@@ -1,0 +1,7 @@
+*.o
+campuscompute
+campuscompute.exe
+campuscompute.log
+*.zip
+*.pdf
+screenshots/
