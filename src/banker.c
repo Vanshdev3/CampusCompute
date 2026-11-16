@@ -14,6 +14,12 @@ int run_banker(int unsafe_case) {
     int need[P][R], finish[P] = {0}, sequence[P], count = 0;
     puts("Available:"); for (int r=0;r<R;++r) printf("%d%c",available[r],r+1==R?'\n':' ');
     for (int p=0;p<P;++p) for (int r=0;r<R;++r) { need[p][r]=maximum[p][r]-allocation[p][r]; if (need[p][r]<0) { fprintf(stderr,"Invalid state: allocation exceeds maximum.\n"); return 1; } }
+    puts("Process | Allocation | Maximum | Need");
+    for (int p=0;p<P;++p)
+        printf("P%d      | %d %d %d      | %d %d %d  | %d %d %d\n",p,
+               allocation[p][0],allocation[p][1],allocation[p][2],
+               maximum[p][0],maximum[p][1],maximum[p][2],
+               need[p][0],need[p][1],need[p][2]);
     int progress;
     do {
         progress=0;

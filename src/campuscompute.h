@@ -5,11 +5,14 @@
 
 #define MAX_JOBS 32
 
+typedef enum { JOB_NEW, JOB_READY, JOB_RUNNING, JOB_COMPLETED } JobStatus;
+
 typedef struct {
     int id;
     int arrival;
     int burst;
     int priority;
+    JobStatus status;
 } Job;
 
 typedef enum { SCHED_FCFS, SCHED_RR, SCHED_PRIORITY } SchedulePolicy;

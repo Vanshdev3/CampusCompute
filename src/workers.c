@@ -1,6 +1,7 @@
 #include "campuscompute.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/resource.h>
@@ -24,7 +25,16 @@ int run_limit(void) {
     requested.rlim_cur=cap;
     if(setrlimit(RLIMIT_NOFILE,&requested)<0){perror("setrlimit RLIMIT_NOFILE");return 1;}
     struct rlimit observed;if(getrlimit(RLIMIT_NOFILE,&observed)<0){perror("getrlimit after setrlimit");return 1;}
-    printf("RLIMIT_NOFILE soft limit: before=%llu, applied=%llu, observed=%llu; this caps open file descriptors for this process.\n",
+    int opened[64], opened_count=0, open_error=0;
+    while(opened_count < (int)(sizeof(opened)/sizeof(opened[0]))) {
+        int fd=open("/dev/null", O_RDONLY);
+        if(fd<0){open_error=errno;break;}
+        opened[opened_count++]=fd;
+    }
+    for(int i=0;i<opened_count;++i) close(opened[i]);
+    printf("RLIMIT_NOFILE soft limit: before=%llu, applied=%llu, observed=%llu.\n",
            (unsigned long long)old.rlim_cur,(unsigned long long)requested.rlim_cur,(unsigned long long)observed.rlim_cur);
-    return observed.rlim_cur==requested.rlim_cur?0:1;
+    printf("Observed effect: opened %d extra /dev/null descriptors; next open failed with %s.\n",
+           opened_count,open_error==EMFILE?"EMFILE (per-process descriptor limit)":"an unexpected error");
+    return observed.rlim_cur==requested.rlim_cur && open_error==EMFILE?0:1;
 }

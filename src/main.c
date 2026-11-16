@@ -1,5 +1,6 @@
 #include "campuscompute.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -27,13 +28,40 @@ void print_usage(const char *program) {
            "  %s banker <safe|unsafe|both>\n"
            "  %s worker <normal|fail|both>\n"
            "  %s limit\n"
+           "  %s cleanup\n"
            "  %s demo\n"
            "Sample jobs are repeatable and documented in README.md.\n",
-           program, program, program, program, program, program, program, program, program);
+           program, program, program, program, program, program, program, program, program, program);
+}
+
+static int run_cleanup_check(void) {
+    int result = 0;
+    puts("Cleanup verification: joining logger threads and reaping child workers.");
+    if (run_logger(4, "campuscompute.log") != 0) result = 1;
+    if (run_worker(0) != 0) result = 1;
+    if (run_worker(1) != 0) result = 1;
+    if (run_ipc() != 0) result = 1;
+
+    DIR *shared_memory = opendir("/dev/shm");
+    if (!shared_memory) { perror("opendir /dev/shm"); return 1; }
+    int leftovers = 0;
+    struct dirent *entry;
+    while ((entry = readdir(shared_memory)) != NULL) {
+        if (strncmp(entry->d_name, "campuscompute_", 14) == 0 ||
+            strncmp(entry->d_name, "sem.campuscompute_sem_", 22) == 0) {
+            printf("Program-prefixed IPC name remains: %s\n", entry->d_name);
+            leftovers = 1;
+        }
+    }
+    closedir(shared_memory);
+    if (!leftovers) puts("No CampusCompute IPC objects remain under /dev/shm.");
+    else result = 1;
+    if (result == 0) puts("Cleanup check passed: threads joined, child processes reaped, and created IPC names released.");
+    return result;
 }
 
 int run_demo(void) {
-    const Job jobs[] = {{1, 0, 5, 2}, {2, 1, 3, 1}, {3, 2, 8, 3}, {4, 3, 6, 1}};
+    const Job jobs[] = {{1, 0, 5, 2, JOB_NEW}, {2, 1, 3, 1, JOB_NEW}, {3, 2, 8, 3, JOB_NEW}, {4, 3, 6, 1, JOB_NEW}};
     int result = 0;
     puts("=== CampusCompute integrated demonstration ===");
     puts("[1/7] Scheduling comparison");
@@ -52,8 +80,7 @@ int run_demo(void) {
 }
 
 int main(int argc, char **argv) {
-    int value = 0;
-    const Job jobs[] = {{1, 0, 5, 2}, {2, 1, 3, 1}, {3, 2, 8, 3}, {4, 3, 6, 1}};
+    const Job jobs[] = {{1, 0, 5, 2, JOB_NEW}, {2, 1, 3, 1, JOB_NEW}, {3, 2, 8, 3, JOB_NEW}, {4, 3, 6, 1, JOB_NEW}};
     if (argc < 2 || strcmp(argv[1], "help") == 0 || strcmp(argv[1], "--help") == 0) {
         print_usage(argv[0]); return argc < 2 ? 2 : 0;
     }
@@ -89,8 +116,8 @@ int main(int argc, char **argv) {
         goto bad_usage;
     }
     if (strcmp(argv[1], "limit") == 0 && argc == 2) return run_limit();
+    if (strcmp(argv[1], "cleanup") == 0 && argc == 2) return run_cleanup_check();
     if (strcmp(argv[1], "demo") == 0 && argc == 2) return run_demo();
 bad_usage:
-    if (argc > 2) (void)parse_int(argv[2], 0, INT_MAX, &value);
     fprintf(stderr, "Error: invalid command or arguments.\n"); print_usage(argv[0]); return 2;
 }
