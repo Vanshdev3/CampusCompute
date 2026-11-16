@@ -4,19 +4,13 @@ CampusCompute is a Linux/Ubuntu command-line mini-project for operating systems.
 
 ## Requirements
 
-- Linux/Ubuntu or WSL Ubuntu
+- An Ubuntu Linux VM (VirtualBox, VMware, or another hypervisor)
 - GCC and GNU Make
 - POSIX threads, shared memory, named semaphores, `fork`, `waitpid`, and `setrlimit`
 
-## Set up on Windows with WSL
+## Set up inside an Ubuntu VM
 
-Open **PowerShell as Administrator** and install WSL with Ubuntu:
-
-```powershell
-wsl --install -d Ubuntu
-```
-
-Restart Windows if prompted. Launch **Ubuntu** from the Start menu and create the Linux username/password on first launch. In Ubuntu, install the build tools, then clone this repository into the Linux home directory:
+Open a terminal inside the Ubuntu VM. Install the build tools and clone this repository into the VM user's Linux home directory:
 
 ```sh
 sudo apt update
@@ -24,6 +18,13 @@ sudo apt install -y build-essential git zip unzip
 cd ~
 git clone https://github.com/Vanshdev3/CampusCompute.git CampusCompute
 cd ~/CampusCompute
+```
+
+If you already cloned the repository in the VM, update that copy instead:
+
+```sh
+cd ~/CampusCompute
+git pull --ff-only origin main
 ```
 
 The assignment requires an SRN prompt for terminal evidence. Set the submitting/capturing student's full actual SRN locally in that Ubuntu shell; do not use the example placeholder:
@@ -61,7 +62,7 @@ The logger replaces the selected log file. IPC names include the parent PID and 
 
 ## Evidence PDF and submission
 
-Capture genuine screenshots in Ubuntu/WSL after building and running each command. Before capture, set the prompt with the submitting student's full actual SRN, for example:
+Capture genuine screenshots in the Ubuntu VM after building and running each command. Before capture, set the prompt with the submitting student's full actual SRN, for example:
 
 ```sh
 export SRN='YOUR_ACTUAL_FULL_SRN'
@@ -72,7 +73,7 @@ Do not leave the placeholder in the final evidence. Screenshots must show the co
 
 ## Screenshot commands and captions
 
-Capture the Ubuntu terminal directly. Every screenshot must show the shell command and full actual SRN prompt. Save the images as `S01.png` through `S24.png`; put the matching one-sentence caption under each screenshot in one PDF. Run the commands from `~/CampusCompute` unless the row changes directory.
+Capture the Ubuntu VM terminal directly. Every screenshot must show the shell command and full actual SRN prompt. Save the images as `S01.png` through `S24.png`; put the matching one-sentence caption under each screenshot in one PDF. Run the commands from `~/CampusCompute` unless the row changes directory. The PDFs specify 24 screenshots, S01–S24.
 
 | ID | Command to run | Required visible evidence | Caption |
 |---|---|---|---|
